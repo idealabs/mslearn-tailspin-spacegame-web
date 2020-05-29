@@ -60,11 +60,11 @@ steps:
     projects: '**/*.csproj'
 
 - task: templates/build.yml
-  parameters: 
+  parameters:
     buildConfiguration: 'Debug'
 
 - task: templates/build.yml
-  parameters: 
+  parameters:
     buildConfiguration: 'Release'
 
 # - task: DotNetCoreCLI@2
