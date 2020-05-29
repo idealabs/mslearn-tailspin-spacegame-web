@@ -15,6 +15,8 @@ variables:
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  dotnetSdkVersion: '3.1.100'
+  wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
 
 steps:
 - task: NuGetToolInstaller@1
@@ -23,23 +25,23 @@ steps:
   inputs:
     restoreSolution: '$(solution)'
 
+# - task: VSBuild@1
+#   inputs:
+#     solution: '$(solution)'
+#     msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+#     platform: '$(buildPlatform)'
+#     configuration: '$(buildConfiguration)'
+
+- task: UseDotNet@2
+  displayName: 'Use .net Core SDK $(dotnetSdkVersion)'
+  inputs:
+    packageType: sdk
+    version: '$(dotnetSdkVersion)'
+
 - task: Npm@1
   displayName: 'Run npm install'
   inputs:
     verbose: false
-
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-
-- task: UseDotNet@2
-  displayName: 'Use .net Core SDK 3.1.100'
-  inputs:
-    packageType: sdk
-    version: 3.1.100
 
 - script: './node_modules/.bin/node-sass Tailspin.SpaceGame.Web/wwwroot --output Tailspin.SpaceGame.Web/wwwroot'
   displayName: 'Compile Sass assets'
@@ -49,7 +51,7 @@ steps:
 
 - script: 'echo "$(Build.DefinitionName), $(Build.BuildId), $(Build.BuildNumber)" > buildinfo.txt'
   displayName: 'Write build info'
-  workingDirectory: Tailspin.SpaceGame.Web/wwwroot
+  workingDirectory: $(wwwrootDir)
 
 - task: DotNetCoreCLI@2
   displayName: 'Restore project dependencies'
@@ -57,12 +59,24 @@ steps:
     command: 'restore'
     projects: '**/*.csproj'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Build the project - Release'
-  inputs:
-    command: 'build'
-    arguments: '--no-restore --configuration Release'
-    projects: '**/*.csproj'
+- task: templates/build.yml
+  parameters: 
+    buildConfiguration: 'Debug'
+
+- task: templates/build.yml
+  parameters: 
+    buildConfiguration: 'Release'
+
+# - task: DotNetCoreCLI@2
+#   displayName: 'Build the project - Release'
+#   inputs:
+#     command: 'build'
+#     arguments: '--no-restore --configuration Release'
+#     projects: '**/*.csproj'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  condition: succeeded()
 
 - task: VSTest@2
   inputs:
