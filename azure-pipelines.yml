@@ -5,7 +5,13 @@
 # 
 
 trigger:
-- '*'
+  branches:
+    includes:
+    - '*' #build all request
+
+    paths:
+      exclude:
+        - docs/*  #exluce the docs folder
 
 pool:
   vmImage: 'windows-latest'
