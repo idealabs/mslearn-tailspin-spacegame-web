@@ -12,4 +12,6 @@
   <ItemGroup>
     <Folder Include="wwwroot\images\avatars\" />
   </ItemGroup>
+
+  <PackageReference Include="Tailspin.ApaceGame.Web.Models" Version="1.0.0-CI-20200602-022039" />
 </Project>
